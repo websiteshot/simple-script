@@ -23,6 +23,7 @@ Available options:
 -vh, --height   Argument: Height of View
 -c, --create    Creates a new Screenshot Job
 -g, --get       Get needed data for JobId
+-d, --download  Download first Screenshot of Job
 EOF
     exit
 }
@@ -51,8 +52,24 @@ die() {
     exit "$code"
 }
 
+api_post() {
+    job=$(curl -H 'Authorization: '"${apikey}"'' -H "Content-Type: application/json" -d '{"screenshotParameter":{"width":'"${width}"', "height":'"${height}"'}, "urls":[{"url":"'"${website}"'", "name":"'"${website}"'"}]}' -X POST ${baseurl}/api/projects/${project} | jq -r '.jobId')
+    consoleurl="${febaseurl}/projects/${project}/screenshots/${job}"
+}
+
+api_get() {
+    res=$(curl -H 'Authorization: '"${apikey}"'' ${baseurl}/api/projects/${project}/screenshots/root/${job})
+    downloadurl=$(echo ${res} | jq -r '.jobs[0].data')
+    name=$(echo ${res} | jq -r '.jobs[0].uuid')
+    width=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.width')
+    height=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.height')
+    consoleurl="${febaseurl}/projects/${project}/screenshots/${job}"
+}
+
 parse_params() {
     baseurl='https://api.websiteshot.app'
+    febaseurl='https://websiteshot.app'
+    consoleurl=''
     project=''
     apikey=''
     job='unset'
@@ -93,25 +110,17 @@ parse_params() {
             shift
             ;;
         -c | --create)
-            job=$(curl -H 'Authorization: '"${apikey}"'' -H "Content-Type: application/json" -d '{"screenshotParameter":{"width":'"${width}"', "height":'"${height}"'}, "urls":[{"url":"'"${website}"'", "name":"'"${website}"'"}]}' -X POST ${baseurl}/api/projects/${project} | jq -r '.jobId')
+            api_post
             response="${response}Create Request for Project ${project}"
             return 0
             ;;
         -g | --get)
-            res=$(curl -H 'Authorization: '"${apikey}"'' ${baseurl}/api/projects/${project}/screenshots/root/${job})
-            downloadurl=$(echo ${res} | jq -r '.jobs[0].data')
-            name=$(echo ${res} | jq -r '.jobs[0].uuid')
-            width=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.width')
-            height=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.height')
+            api_get
             response="${response}Get Request for Job ${job} of Project ${project}"
             return 0
             ;;
         -d | --download)
-            res=$(curl -H 'Authorization: '"${apikey}"'' ${baseurl}/api/projects/${project}/screenshots/root/${job})
-            downloadurl=$(echo ${res} | jq -r '.jobs[0].data')
-            name=$(echo ${res} | jq -r '.jobs[0].uuid')
-            width=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.width')
-            height=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.height')
+            api_get
             curl ${downloadurl} --output ${name}.png
             response="${response}Get Request for Job ${job} of Project ${project}\nSaved file to ${name}.png"
             return 0
@@ -145,3 +154,5 @@ msg "${CYAN}Job: ${job}"
 msg "${CYAN}Screenshot Url: ${downloadurl}"
 msg "${BLUE}Width: ${width}"
 msg "${BLUE}Height: ${height}"
+msg ""
+msg "${GREEN}Visit Websiteshot Console for Job via ${consoleurl}"
