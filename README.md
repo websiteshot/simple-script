@@ -1,6 +1,41 @@
+<hr />
+
+<div align="center">
+    <a href="https://websiteshot.app/">
+        <img src="./assets/logo-mini.png">
+    </a>
+</div>
+
+<div align="center">
+<p>Never spend time again to create awesome screenshots of your websites.</p>
+</div>
+
+<div align="center">
+<a style="margin: 1em;" href="https://websiteshot.app">Websiteshot</a>
+<a style="margin: 1em;" href="https://docs.websiteshot.app">Documentation</a>
+</div>
+
+<hr />
+
 # Simple Script
 
 Simple Script to use the Websiteshot API.
+
+## Available Options
+
+```bash
+-h, --help      Print this help and exit
+-v, --verbose   Print script debug info
+-p, --project   Argument: ProjectId
+-a, --apikey    Argument: API Key
+-j, --job       Argument: JobId
+-w, --website   Argument: URL of Website
+-vw, --width    Argument: Width of View
+-vh, --height   Argument: Height of View
+-c, --create    Creates a new Screenshot Job
+-g, --get       Get needed data for JobId
+-d, --download  Download first Screenshot of Job
+```
 
 ## Prerequisites
 
@@ -11,6 +46,8 @@ export PROJECT=...
 export APIKEY=...
 ```
 
+The Script uses cURL and [jq](https://stedolan.github.io/jq/). Both tools need to be installed on your system.
+
 ## Example
 
 ### Create a new Screenshot
@@ -19,10 +56,40 @@ export APIKEY=...
 ./simple-script.sh -a $APIKEY -p $PROJECT -c
 ```
 
+The Script executes the follwing cURL command:
+
+```bash
+curl -H 'Authorization: '"${apikey}"'' -H "Content-Type: application/json" -d '{"screenshotParameter":{"width":'"${width}"', "height":'"${height}"'}, "urls":[{"url":"'"${website}"'", "name":"'"${website}"'"}]}' -X POST ${baseurl}/api/projects/${project}
+```
+
+Output:
+
+```bash
+Create Request for Project abcdef...
+Project: abcdef...
+Website: https://websiteshot.app
+Job: abcdef...
+Screenshot Url: unset
+Width: 1200
+Height: 720
+```
+
 ### Get a Screenshot
 
 ```bash
 ./simple-script.sh -a $APIKEY -p $PROJECT -j $JOBID -g
+```
+
+Output:
+
+```bash
+Get Request for Job abcdef... of Project abcdef...
+Project: abcdef...
+Website: https://websiteshot.app
+Job: abcdef...
+Screenshot Url: https://...
+Width: 1200
+Height: 720
 ```
 
 ### Download Screenshot
