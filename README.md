@@ -11,8 +11,7 @@
 </div>
 
 <div align="center">
-<a style="margin: 1em;" href="https://websiteshot.app">Websiteshot</a>
-<a style="margin: 1em;" href="https://docs.websiteshot.app">Documentation</a>
+<a style="margin: 1em;" href="https://websiteshot.app">Websiteshot</a> | <a style="margin: 1em;" href="https://docs.websiteshot.app">Documentation</a>
 </div>
 
 <hr />
