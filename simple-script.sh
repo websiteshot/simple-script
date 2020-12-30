@@ -19,6 +19,8 @@ Available options:
 -a, --apikey    Argument: API Key
 -j, --job       Argument: JobId
 -w, --website   Argument: URL of Website
+-vw, --width    Argument: Width of View
+-vh, --height   Argument: Height of View
 -c, --create    Creates a new Screenshot Job
 -g, --get       Get needed data for JobId
 EOF
@@ -50,10 +52,15 @@ die() {
 }
 
 parse_params() {
-    project='noproject'
-    apikey='noapikey'
-    job='nojob'
-    website='nowebsite'
+    baseurl='https://api.websiteshot.app'
+    project=''
+    apikey=''
+    job='unset'
+    website='https://websiteshot.app'
+    width='1200'
+    height='720'
+    name='unset'
+    downloadurl='unset'
     response=''
 
     while :; do
@@ -73,18 +80,40 @@ parse_params() {
             job="${2-}"
             shift
             ;;
+        -vw | --width)
+            width="${2-}"
+            shift
+            ;;
+        -vh | --height)
+            height="${2-}"
+            shift
+            ;;
         -w | --website)
             website="${2-}"
             shift
             ;;
         -c | --create)
-            curl -H 'Authorization: '"${apikey}"'' -H "Content-Type: application/json" -d '{"screenshotParameter":{"width":1200, "height":720}, "urls":[{"url":"'"${website}"'", "name":"dev.to"}]}' -X POST https://api.websiteshot.app/api/projects/${project}
-            response="Create Request for Project ${project}"
+            job=$(curl -H 'Authorization: '"${apikey}"'' -H "Content-Type: application/json" -d '{"screenshotParameter":{"width":'"${width}"', "height":'"${height}"'}, "urls":[{"url":"'"${website}"'", "name":"'"${website}"'"}]}' -X POST ${baseurl}/api/projects/${project} | jq -r '.jobId')
+            response="${response}Create Request for Project ${project}"
             return 0
             ;;
         -g | --get)
-            curl -H 'Authorization: '"${apikey}"'' https://api.websiteshot.app/api/projects/${project}/screenshots/root/${job}
-            response="Get Request for Job ${job} of Project ${project}"
+            res=$(curl -H 'Authorization: '"${apikey}"'' ${baseurl}/api/projects/${project}/screenshots/root/${job})
+            downloadurl=$(echo ${res} | jq -r '.jobs[0].data')
+            name=$(echo ${res} | jq -r '.jobs[0].uuid')
+            width=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.width')
+            height=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.height')
+            response="${response}Get Request for Job ${job} of Project ${project}"
+            return 0
+            ;;
+        -d | --download)
+            res=$(curl -H 'Authorization: '"${apikey}"'' ${baseurl}/api/projects/${project}/screenshots/root/${job})
+            downloadurl=$(echo ${res} | jq -r '.jobs[0].data')
+            name=$(echo ${res} | jq -r '.jobs[0].uuid')
+            width=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.width')
+            height=$(echo ${res} | jq -r '.jobs[0].screenshotParameter.height')
+            curl ${downloadurl} --output ${name}.png
+            response="${response}Get Request for Job ${job} of Project ${project}\nSaved file to ${name}.png"
             return 0
             ;;
         -?*) die "Unknown option: $1" ;;
@@ -96,8 +125,8 @@ parse_params() {
     args=("$@")
 
     # check required params and arguments
-    [[ -z "${param-}" ]] && die "Missing required parameters"
-    [[ ${#args[@]} -eq 0 ]] && die "Missing script arguments"
+    [[ -z "${project-}" ]] && die "Project missing"
+    [[ -z "${apikey-}" ]] && die "API Key missing"
 
     return 0
 }
@@ -113,3 +142,6 @@ msg "${GREEN}${response}"
 msg "${PURPLE}Project: ${project}"
 msg "${ORANGE}Website: ${website}"
 msg "${CYAN}Job: ${job}"
+msg "${CYAN}Screenshot Url: ${downloadurl}"
+msg "${BLUE}Width: ${width}"
+msg "${BLUE}Height: ${height}"
