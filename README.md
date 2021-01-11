@@ -27,6 +27,7 @@ Simple Script to use the Websiteshot API.
 -v, --verbose   Print script debug info
 -p, --project   Argument: ProjectId
 -a, --apikey    Argument: API Key
+-t, --template  Argument: TemplateId
 -j, --job       Argument: JobId
 -w, --website   Argument: URL of Website
 -vw, --width    Argument: Width of View
@@ -45,6 +46,12 @@ export PROJECT=...
 export APIKEY=...
 ```
 
+If you want to trigger a Screenshot by Template Id add an environment variable for the template:
+
+```bash
+export TEMPLATE=...
+```
+
 The Script uses cURL and [jq](https://stedolan.github.io/jq/). Both tools need to be installed on your system.
 
 ## Example
@@ -53,6 +60,12 @@ The Script uses cURL and [jq](https://stedolan.github.io/jq/). Both tools need t
 
 ```bash
 ./simple-script.sh -a $APIKEY -p $PROJECT -c
+```
+
+Or by Template Id:
+
+```bash
+./simple-script.sh -a $APIKEY -p $PROJECT -t $TEMPLATE -c
 ```
 
 The Script executes the follwing cURL command:

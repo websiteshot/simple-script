@@ -17,6 +17,7 @@ Available options:
 -v, --verbose   Print script debug info
 -p, --project   Argument: ProjectId
 -a, --apikey    Argument: API Key
+-t, --template  Argument: TemplateId
 -j, --job       Argument: JobId
 -w, --website   Argument: URL of Website
 -vw, --width    Argument: Width of View
@@ -57,6 +58,11 @@ api_post() {
     consoleurl="${febaseurl}/projects/${project}/screenshots/${job}"
 }
 
+api_post_template() {
+    job=$(curl -H 'Authorization: '"${apikey}"'' -H "Content-Type: application/json" -X POST ${baseurl}/api/projects/${project}/templates/${template} | jq -r '.jobId')
+    consoleurl="${febaseurl}/projects/${project}/screenshots/${job}"
+}
+
 api_get() {
     res=$(curl -H 'Authorization: '"${apikey}"'' ${baseurl}/api/projects/${project}/screenshots/root/${job})
     downloadurl=$(echo ${res} | jq -r '.jobs[0].data')
@@ -72,6 +78,7 @@ parse_params() {
     consoleurl=''
     project=''
     apikey=''
+    template=''
     job='unset'
     website='https://websiteshot.app'
     width='1200'
@@ -93,6 +100,10 @@ parse_params() {
             apikey="${2-}"
             shift
             ;;
+        -t | --template)
+            template="${2-}"
+            shift
+            ;;
         -j | --job)
             job="${2-}"
             shift
@@ -110,7 +121,13 @@ parse_params() {
             shift
             ;;
         -c | --create)
-            api_post
+            templateLength=${#template}
+            if [[ $templateLength -ge 1 ]]; then
+                api_post_template
+            else
+                api_post
+            fi
+
             response="${response}Create Request for Project ${project}"
             return 0
             ;;
@@ -149,6 +166,7 @@ msg ""
 msg ""
 msg "${GREEN}${response}"
 msg "${PURPLE}Project: ${project}"
+msg "${PURPLE}Template: ${template}"
 msg "${ORANGE}Website: ${website}"
 msg "${CYAN}Job: ${job}"
 msg "${CYAN}Screenshot Url: ${downloadurl}"
