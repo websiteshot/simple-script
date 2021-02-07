@@ -2,7 +2,7 @@
 
 <div align="center">
     <a href="https://websiteshot.app/">
-        <img src="./assets/logopublicsmall.png" width="100">
+        <img src="https://websiteshot-docs.s3.eu-central-1.amazonaws.com/logopublicsmall.png" width="100">
     </a>
 </div>
 
